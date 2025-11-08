@@ -1,250 +1,20 @@
 "use client";
 
-import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
-import type { KeyboardEvent, ReactNode } from "react";
+import { useEffect, useState } from "react";
+import type { KeyboardEvent } from "react";
 import { useToast } from "@/components/toast";
+import type { ColumnId, Medication } from "@/types/medication";
+import { initialMedications } from "@/data/medications";
+import { Icon } from "@/components/ui/icon";
+import { SelectionCheckbox } from "@/components/medication/selection-checkbox";
+import {
+  DEFAULT_VISIBLE_OPTIONAL_COLUMNS,
+  optionalColumnConfig,
+  optionalColumnOrder,
+} from "@/components/medication/optional-columns";
+import { ColumnConfigurator } from "@/components/medication/column-configurator";
 
-type Medication = {
-  id: number;
-  name: string;
-  dosage: string;
-  frequency: string;
-  duration: string;
-  instructions: string;
-  date: string;
-  doctor: string;
-  contact: string;
-  notes: string;
-  patient?: {
-    fullName: string;
-    tags: string[];
-  };
-  color: string;
-};
-
-const initialMedications: Medication[] = [
-  {
-    id: 1,
-    name: "Cetirizine",
-    dosage: "10mg · Tablets",
-    frequency: "Twice a day (BID)",
-    duration: "2 weeks · Oral",
-    instructions: "Take after meals and avoid acidic food",
-    date: "22-10-2021",
-    doctor: "Dr. Kumar Shah",
-    contact: "+1 (555) 204-1212",
-    notes: "Patient reports mild drowsiness if taken before 9am.",
-    patient: {
-      fullName: "Jannette Somebody",
-      tags: ["Hypertensive", "Hypersensitive", "High risk"],
-    },
-    color: "border-l-4 border-green-500",
-  },
-  {
-    id: 2,
-    name: "Paracetamol",
-    dosage: "20mg · Vial",
-    frequency: "Once a day (OD)",
-    duration: "1 day · Injection",
-    instructions: "Not recorded",
-    date: "22-10-2021",
-    doctor: "Dr. Kumar Shah",
-    contact: "+1 (555) 204-1212",
-    notes: "Administer via IM injection only.",
-    patient: {
-      fullName: "Jannette Somebody",
-      tags: ["Hypertensive"],
-    },
-    color: "border-l-4 border-red-400",
-  },
-  {
-    id: 3,
-    name: "Ethinyl estradiol",
-    dosage: "10mg · Tablets",
-    frequency: "Twice a day (BID)",
-    duration: "2 days · Oral",
-    instructions: "Don't take on empty stomach",
-    date: "22-10-2021",
-    doctor: "Dr. Kumar Shah",
-    contact: "+1 (555) 204-1212",
-    notes: "Schedule follow-up in three days.",
-    patient: {
-      fullName: "Jannette Somebody",
-      tags: ["Hypertensive", "Hypersensitive", "Allergy: dust"],
-    },
-    color: "border-l-4 border-blue-500",
-  },
-  {
-    id: 4,
-    name: "Ethinyl estradiol",
-    dosage: "10mg · Tablets",
-    frequency: "Twice a day (BID)",
-    duration: "2 days · Oral",
-    instructions: "Don't take on empty stomach",
-    date: "22-10-2021",
-    doctor: "Dr. Kumar Shah",
-    contact: "+1 (555) 204-1212",
-    notes: "Monitor for nausea.",
-    patient: {
-      fullName: "Jannette Somebody",
-      tags: ["Hypersensitive"],
-    },
-    color: "border-l-4 border-pink-400",
-  },
-  {
-    id: 5,
-    name: "Ethinyl estradiol",
-    dosage: "10mg · Tablets",
-    frequency: "Twice a day (BID)",
-    duration: "2 days · Oral",
-    instructions: "Don't take on empty stomach",
-    date: "22-10-2021",
-    doctor: "Dr. Kumar Shah",
-    contact: "+1 (555) 204-1212",
-    notes: "Evening dose preferred.",
-    patient: {
-      fullName: "Jannette Somebody",
-      tags: ["Hypertensive"],
-    },
-    color: "border-l-4 border-green-500",
-  },
-];
-
-type IconName =
-  | "search"
-  | "chevron-down"
-  | "chevron-left"
-  | "chevron-right"
-  | "filter"
-  | "columns"
-  | "ellipsis"
-  | "checkbox"
-  | "checkbox-checked"
-  | "checkbox-indeterminate"
-  | "edit"
-  | "export"
-  | "archive"
-  | "chevron-right-small"
-  | "pencil-blue"
-  | "drag-blue"
-  | "drag-gray";
-
-type ColumnId = "contact" | "patientTags" | "notes";
-
-const optionalColumnOrder: ColumnId[] = ["contact", "patientTags", "notes"];
-
-const optionalColumnConfig: Record<
-  ColumnId,
-  {
-    label: string;
-    description: string;
-    renderCell: (med: Medication) => ReactNode;
-  }
-> = {
-  contact: {
-    label: "Patient contact",
-    description: "Primary phone number and patient name.",
-    renderCell: (med) => (
-      <div className="space-y-1 text-sm">
-        <p className="font-medium text-slate-900">
-          {med.patient?.fullName ?? "Unknown patient"}
-        </p>
-        <p className="text-slate-500">{med.contact}</p>
-      </div>
-    ),
-  },
-  patientTags: {
-    label: "Patient tags",
-    description: "Highlight key traits or alerts.",
-    renderCell: (med) => (
-      <div className="flex flex-wrap gap-2">
-        {(med.patient?.tags ?? []).map((tag, index) => (
-          <span
-            key={`${med.id}-opt-tag-${index}`}
-            className="rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-600"
-          >
-            {tag}
-          </span>
-        ))}
-        {(!med.patient || med.patient.tags.length === 0) && (
-          <span className="text-sm text-slate-400">No tags</span>
-        )}
-      </div>
-    ),
-  },
-  notes: {
-    label: "Care notes",
-    description: "Internal notes about this order.",
-    renderCell: (med) => (
-      <p className="text-sm text-slate-600">{med.notes}</p>
-    ),
-  },
-};
-
-const DEFAULT_VISIBLE_OPTIONAL_COLUMNS: ColumnId[] = [];
-
-type IconProps = {
-  name: IconName;
-  alt?: string;
-  size?: number;
-  className?: string;
-};
-
-function Icon({ name, alt = "", size = 16, className }: IconProps) {
-  return (
-    <Image
-      src={`/icons/${name}.svg`}
-      alt={alt}
-      width={size}
-      height={size}
-      aria-hidden={alt ? undefined : true}
-      className={className}
-    />
-  );
-}
-
-type CheckboxProps = {
-  checked?: boolean;
-  indeterminate?: boolean;
-  onToggle: () => void;
-  label?: string;
-};
-
-function SelectionCheckbox({
-  checked,
-  indeterminate,
-  onToggle,
-  label,
-}: CheckboxProps) {
-  const checkboxRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (checkboxRef.current) {
-      checkboxRef.current.indeterminate = Boolean(indeterminate && !checked);
-    }
-  }, [indeterminate, checked]);
-
-  const iconName: IconName = indeterminate
-    ? "checkbox-indeterminate"
-    : checked
-      ? "checkbox-checked"
-      : "checkbox";
-
-  return (
-    <label className="relative inline-flex h-6 w-6 cursor-pointer items-center justify-center focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-indigo-500">
-      <input
-        ref={checkboxRef}
-        type="checkbox"
-        checked={checked}
-        onChange={onToggle}
-        aria-label={label}
-        className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-      />
-      <Icon name={iconName} />
-    </label>
-  );
-}
+type EditableField = "name" | "dosage" | "frequency" | "duration" | "instructions";
 
 export function MedicationTable() {
   const [medications, setMedications] = useState<Medication[]>(initialMedications);
@@ -257,14 +27,14 @@ export function MedicationTable() {
   const [visibleOptionalColumns, setVisibleOptionalColumns] = useState<ColumnId[]>(
     DEFAULT_VISIBLE_OPTIONAL_COLUMNS,
   );
-  const [showColumnConfigurator, setShowColumnConfigurator] = useState(false);
   const [saveForTeam, setSaveForTeam] = useState(true);
+  const { showToast } = useToast();
+  const [isConfigOpen, setIsConfigOpen] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 2000);
     return () => clearTimeout(timer);
   }, []);
-
 
   const toggleRowSelection = (id: number) => {
     setSelectedIds((prev) => {
@@ -323,8 +93,6 @@ export function MedicationTable() {
       setPendingEdits(edits);
     }
   };
-
-  type EditableField = "name" | "dosage" | "frequency" | "duration" | "instructions";
 
   const ensureDraftRow = (id: number) => {
     setPendingEdits((prev) => {
@@ -477,8 +245,6 @@ export function MedicationTable() {
     setEditingCells({});
   };
 
-  const { showToast } = useToast();
-
   const handleSaveChanges = () => {
     if (Object.keys(pendingEdits).length === 0) {
       setIsEditing(false);
@@ -510,13 +276,11 @@ export function MedicationTable() {
   };
 
   const handleToggleColumnVisibility = (column: ColumnId) => {
-    setVisibleOptionalColumns((prev) => {
-      if (prev.includes(column)) {
-        return prev.filter((item) => item !== column);
-      }
-      const next = [...prev, column];
-      return optionalColumnOrder.filter((col) => next.includes(col));
-    });
+    setVisibleOptionalColumns((prev) =>
+      prev.includes(column)
+        ? prev.filter((item) => item !== column)
+        : optionalColumnOrder.filter((col) => [...prev, column].includes(col)),
+    );
   };
 
   const handleResetColumns = () => {
@@ -560,7 +324,7 @@ export function MedicationTable() {
         <div className="ml-auto h-4 w-24 rounded bg-slate-100" />
         <div className="ml-auto mt-2 h-3 w-20 rounded bg-slate-100" />
       </td>
-      {activeOptionalColumns.map((column) => (
+      {visibleOptionalColumns.map((column) => (
         <td key={`skeleton-${column}`} className="px-4 py-4">
           <div className="h-3 w-full rounded bg-slate-100" />
         </td>
@@ -578,414 +342,281 @@ export function MedicationTable() {
   return (
     <>
       <section className="w-full rounded-3xl border border-slate-200 bg-white shadow-sm">
-      <div className="flex flex-col gap-4 border-b border-slate-200 px-6 pb-4 pt-5 md:flex-row md:items-center md:justify-between">
-        <label className="flex flex-1 items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-500 focus-within:border-slate-400">
-          <Icon name="search" alt="Search" />
-          <input
-            placeholder="Search"
-            className="w-full bg-transparent text-slate-900 outline-none placeholder:text-slate-400"
-          />
-        </label>
-        <div className="flex items-center gap-2">
-          <button className="flex items-center gap-2 rounded-2xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700">
-            Sort by <Icon name="chevron-down" />
-          </button>
-          <button className="flex items-center gap-2 rounded-2xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700">
-            <Icon name="filter" alt="Filter icon" size={18} />
-            Filter
-          </button>
-          <button
-            type="button"
-            onClick={() => setShowColumnConfigurator(true)}
-            className="flex items-center gap-2 rounded-2xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700"
-          >
-            <Icon name="columns" alt="Columns icon" size={18} />
-            Configure columns
-          </button>
-        </div>
-      </div>
-      {selectionCount > 0 && (
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-indigo-100 bg-indigo-50 px-6 py-4 text-sm">
-          <div className="flex items-center gap-3 text-indigo-700">
-            <Icon name="checkbox-indeterminate" />
-            <span className="font-medium">
-              <span className="text-base font-semibold">
-                {selectionCount}
-              </span>{" "}
-              {selectionLabel}
-            </span>
+        <div className="flex flex-col gap-4 border-b border-slate-200 px-6 pb-4 pt-5 md:flex-row md:items-center md:justify-between">
+          <label className="flex flex-1 items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-500 focus-within:border-slate-400">
+            <Icon name="search" alt="Search" />
+            <input
+              placeholder="Search"
+              className="w-full bg-transparent text-slate-900 outline-none placeholder:text-slate-400"
+            />
+          </label>
+          <div className="flex items-center gap-2">
+            <button className="flex items-center gap-2 rounded-2xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700">
+              Sort by <Icon name="chevron-down" />
+            </button>
+            <button className="flex items-center gap-2 rounded-2xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700">
+              <Icon name="filter" alt="Filter icon" size={18} />
+              Filter
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsConfigOpen(true)}
+              className="flex items-center gap-2 rounded-2xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700"
+            >
+              <Icon name="columns" alt="Columns icon" size={18} />
+              Configure columns
+            </button>
           </div>
-          {isEditing ? (
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={handleDismissEdits}
-                className="rounded-xl border border-slate-300 bg-white px-4 py-2 font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
-              >
-                Dismiss
-              </button>
-              <button
-                type="button"
-                onClick={handleSaveChanges}
-                className="rounded-xl bg-indigo-600 px-5 py-2 font-semibold text-white shadow-sm transition hover:bg-indigo-700"
-              >
-                Save changes
-              </button>
-            </div>
-          ) : (
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={handleStartEditing}
-                className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 font-medium text-slate-800 shadow-sm transition hover:bg-slate-50"
-              >
-                <Icon name="edit" />
-                Edit
-              </button>
-              <button
-                type="button"
-                onClick={() => alert("Export action coming soon")}
-                className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 font-medium text-slate-800 shadow-sm transition hover:bg-slate-50"
-              >
-                <Icon name="export" />
-                Export
-              </button>
-              <button
-                type="button"
-                onClick={() => alert("Archive action coming soon")}
-                className="flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 px-3 py-2 font-medium text-red-600 shadow-sm transition hover:bg-red-100"
-              >
-                <Icon name="archive" />
-                Archive
-              </button>
-            </div>
-          )}
         </div>
-      )}
-      <div className="max-w-full overflow-x-auto">
-        <table className="w-full border-collapse text-sm">
-          <thead>
-            <tr className="text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-              <th className="w-12 px-6 py-3">
-                <SelectionCheckbox
-                  checked={allSelected}
-                  indeterminate={indeterminate}
-                  onToggle={toggleAllRows}
-                  label="Select all medications"
-                />
-              </th>
-              <th className="px-4 py-3">Medication</th>
-              <th className="px-4 py-3">Frequency</th>
-              <th className="px-4 py-3">Additional instructions</th>
-              <th className="px-4 py-3 text-right pr-10">Date</th>
-              {activeOptionalColumns.map((column) => (
-                <th key={`header-${column}`} className="px-4 py-3 text-left">
-                  {optionalColumnConfig[column].label}
+        {selectionCount > 0 && (
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-indigo-100 bg-indigo-50 px-6 py-4 text-sm">
+            <div className="flex items-center gap-3 text-indigo-700">
+              <Icon name="checkbox-indeterminate" />
+              <span className="font-medium">
+                <span className="text-base font-semibold">
+                  {selectionCount}
+                </span>{" "}
+                {selectionLabel}
+              </span>
+            </div>
+            {isEditing ? (
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleDismissEdits}
+                  className="rounded-xl border border-slate-300 bg-white px-4 py-2 font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+                >
+                  Dismiss
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveChanges}
+                  className="rounded-xl bg-indigo-600 px-5 py-2 font-semibold text-white shadow-sm transition hover:bg-indigo-700"
+                >
+                  Save changes
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={handleStartEditing}
+                  className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 font-medium text-slate-800 shadow-sm transition hover:bg-slate-50"
+                >
+                  <Icon name="edit" />
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  onClick={() => alert("Export action coming soon")}
+                  className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 font-medium text-slate-800 shadow-sm transition hover:bg-slate-50"
+                >
+                  <Icon name="export" />
+                  Export
+                </button>
+                <button
+                  type="button"
+                  onClick={() => alert("Archive action coming soon")}
+                  className="flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 px-3 py-2 font-medium text-red-600 shadow-sm transition hover:bg-red-100"
+                >
+                  <Icon name="archive" />
+                  Archive
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+        <div className="max-w-full overflow-x-auto">
+          <table className="w-full border-collapse text-sm">
+            <thead>
+              <tr className="text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                <th className="w-12 px-6 py-3">
+                  <SelectionCheckbox
+                    checked={allSelected}
+                    indeterminate={indeterminate}
+                    onToggle={toggleAllRows}
+                    label="Select all medications"
+                  />
                 </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {isLoading
-              ? Array.from({ length: 6 }).map((_, index) => (
-                  <SkeletonRow key={`skeleton-${index}`} />
-                ))
-              : medications.flatMap((med) => {
-                  const isSelected = selectedIds.includes(med.id);
-                  const isExpanded = expandedIds.includes(med.id);
-                  const baseRow = (
-                    <tr
-                      key={med.id}
-                      className={`border-t border-slate-100 text-slate-900 last:border-b-0 ${med.color} ${isSelected ? "bg-indigo-50 hover:bg-indigo-100" : "hover:bg-slate-50"}`}
-                    >
-                      <td className="px-6 py-4 align-top">
-                        <SelectionCheckbox
-                          checked={isSelected}
-                          onToggle={() => toggleRowSelection(med.id)}
-                          label={`Select ${med.name}`}
-                        />
-                      </td>
-                      <td className="py-3 align-top">
-                        <div className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            className="p-1 text-indigo-600 transition hover:text-indigo-800"
-                            onClick={() => toggleExpand(med.id)}
-                            aria-label={
-                              isExpanded
-                                ? `Collapse details for ${med.name}`
-                                : `Expand details for ${med.name}`
-                            }
-                          >
-                            <Icon
-                              name="chevron-right-small"
-                              className={`h-4 w-4 transition-transform ${isExpanded ? "rotate-90" : ""}`}
-                            />
-                          </button>
-                          <div className="w-full space-y-1">
-                            {renderEditableLine(med.id, "name", med.name, {
-                              textClass: "font-medium text-slate-900",
+                <th className="px-4 py-3">Medication</th>
+                <th className="px-4 py-3">Frequency</th>
+                <th className="px-4 py-3">Additional instructions</th>
+                <th className="px-4 py-3 text-right pr-10">Date</th>
+                {visibleOptionalColumns.map((column) => (
+                  <th key={`header-${column}`} className="px-4 py-3 text-left">
+                    {optionalColumnConfig[column].label}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {isLoading
+                ? Array.from({ length: 6 }).map((_, index) => (
+                    <SkeletonRow key={`skeleton-${index}`} />
+                  ))
+                : medications.flatMap((med) => {
+                    const isSelected = selectedIds.includes(med.id);
+                    const isExpanded = expandedIds.includes(med.id);
+                    const baseRow = (
+                      <tr
+                        key={med.id}
+                        className={`border-t border-slate-100 text-slate-900 last:border-b-0 ${med.color} ${isSelected ? "bg-indigo-50 hover:bg-indigo-100" : "hover:bg-slate-50"}`}
+                      >
+                        <td className="px-6 py-4 align-top">
+                          <SelectionCheckbox
+                            checked={isSelected}
+                            onToggle={() => toggleRowSelection(med.id)}
+                            label={`Select ${med.name}`}
+                          />
+                        </td>
+                        <td className="py-3 align-top">
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              className="p-1 text-indigo-600 transition hover:text-indigo-800"
+                              onClick={() => toggleExpand(med.id)}
+                              aria-label={
+                                isExpanded
+                                  ? `Collapse details for ${med.name}`
+                                  : `Expand details for ${med.name}`
+                              }
+                            >
+                              <Icon
+                                name="chevron-right-small"
+                                className={`h-4 w-4 transition-transform ${isExpanded ? "rotate-90" : ""}`}
+                              />
+                            </button>
+                            <div className="w-full space-y-1">
+                              {renderEditableLine(med.id, "name", med.name, {
+                                textClass: "font-medium text-slate-900",
+                              })}
+                              {renderEditableLine(med.id, "dosage", med.dosage, {
+                                textClass: "text-sm text-slate-500",
+                              })}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-3 align-top">
+                          <div className="space-y-1">
+                            {renderEditableLine(med.id, "frequency", med.frequency, {
+                              textClass: "font-medium text-slate-800",
                             })}
-                            {renderEditableLine(med.id, "dosage", med.dosage, {
+                            {renderEditableLine(med.id, "duration", med.duration, {
                               textClass: "text-sm text-slate-500",
                             })}
                           </div>
-                        </div>
-                      </td>
-                      <td className="py-3 align-top">
-                        <div className="space-y-1">
-                          {renderEditableLine(med.id, "frequency", med.frequency, {
-                            textClass: "font-medium text-slate-800",
-                          })}
-                          {renderEditableLine(med.id, "duration", med.duration, {
-                            textClass: "text-sm text-slate-500",
-                          })}
-                        </div>
-                      </td>
-                      <td className="py-3 align-top text-slate-700">
-                        {renderEditableLine(med.id, "instructions", med.instructions, {
-                          multiline: true,
-                          textClass: "text-slate-700 w-full",
-                        })}
-                      </td>
-                      <td className="px-4 py-3 align-top">
-                        <div className="text-right">
-                          <p className="font-medium text-slate-800">{med.date}</p>
-                          <p className="text-sm text-slate-500">{med.doctor}</p>
-                        </div>
-                      </td>
-                      {activeOptionalColumns.map((column) => (
-                        <td key={`${med.id}-${column}`} className="px-4 py-3 align-top">
-                          {optionalColumnConfig[column].renderCell(med)}
                         </td>
-                      ))}
-                    </tr>
-                  );
-
-                  if (!isExpanded) return [baseRow];
-
-                  return [
-                    baseRow,
-                    <tr key={`${med.id}-details`} className="border-t border-slate-100 bg-[#F7F7FB]">
-                      <td className="pl-6" />
-                      <td colSpan={4 + activeOptionalColumns.length} className="px-6 py-5">
-                        <div className="grid gap-8 text-sm text-slate-700 md:grid-cols-3">
-                          <div className="space-y-4">
-                            <div>
-                              <p className="text-xs uppercase text-slate-400">Full name</p>
-                              <p className="mt-1 font-medium text-slate-900">
-                                {med.patient?.fullName}
-                              </p>
-                            </div>
-                            <div>
-                              <p className="text-xs uppercase text-slate-400">Contact</p>
-                              <p className="mt-1 font-medium text-slate-900">
-                                {med.contact}
-                              </p>
-                            </div>
+                        <td className="py-3 align-top text-slate-700">
+                          {renderEditableLine(med.id, "instructions", med.instructions, {
+                            multiline: true,
+                            textClass: "text-slate-700 w-full",
+                          })}
+                        </td>
+                        <td className="px-4 py-3 align-top">
+                          <div className="text-right">
+                            <p className="font-medium text-slate-800">{med.date}</p>
+                            <p className="text-sm text-slate-500">{med.doctor}</p>
                           </div>
-                          <div className="space-y-4">
-                            <div>
-                              <p className="text-xs uppercase text-slate-400">Prescribed by</p>
-                              <p className="mt-1 font-medium text-slate-900">
-                                {med.doctor}
-                              </p>
+                        </td>
+                        {visibleOptionalColumns.map((column) => (
+                          <td key={`${med.id}-${column}`} className="px-4 py-3 align-top">
+                            {optionalColumnConfig[column].renderCell(med)}
+                          </td>
+                        ))}
+                      </tr>
+                    );
+
+                    if (!isExpanded) return [baseRow];
+
+                    return [
+                      baseRow,
+                      <tr key={`${med.id}-details`} className="border-t border-slate-100 bg-[#F7F7FB]">
+                        <td className="pl-6" />
+                        <td colSpan={4 + visibleOptionalColumns.length} className="px-6 py-5">
+                          <div className="grid gap-8 text-sm text-slate-700 md:grid-cols-3">
+                            <div className="space-y-4">
+                              <div>
+                                <p className="text-xs uppercase text-slate-400">Full name</p>
+                                <p className="mt-1 font-medium text-slate-900">
+                                  {med.patient?.fullName}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-xs uppercase text-slate-400">Contact</p>
+                                <p className="mt-1 font-medium text-slate-900">
+                                  {med.contact}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="space-y-4">
+                              <div>
+                                <p className="text-xs uppercase text-slate-400">Prescribed by</p>
+                                <p className="mt-1 font-medium text-slate-900">
+                                  {med.doctor}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-xs uppercase text-slate-400">
+                                  Additional instructions
+                                </p>
+                                <p className="mt-1 text-slate-700">{med.instructions}</p>
+                              </div>
                             </div>
                             <div>
-                              <p className="text-xs uppercase text-slate-400">
-                                Additional instructions
-                              </p>
-                              <p className="mt-1 text-slate-700">{med.instructions}</p>
-                            </div>
-                          </div>
-                          <div>
-                            <p className="text-xs uppercase text-slate-400">Patient tags</p>
-                            <div className="mt-3 flex flex-wrap items-center gap-2">
-                              <button
-                                type="button"
-                                className="flex items-center gap-1 rounded-full border border-dashed border-slate-300 px-3 py-1 text-xs font-medium text-indigo-600 hover:border-indigo-300"
-                              >
-                                <span className="text-base leading-none text-indigo-600">
-                                  +
-                                </span>
-                                Add patient tag
-                              </button>
-                              {med.patient?.tags.map((tag, index) => (
-                                <span
-                                  key={`${med.id}-tag-${index}`}
-                                  className="rounded-full bg-rose-50 px-3 py-1 text-xs font-medium text-rose-600"
+                              <p className="text-xs uppercase text-slate-400">Patient tags</p>
+                              <div className="mt-3 flex flex-wrap items-center gap-2">
+                                <button
+                                  type="button"
+                                  className="flex items-center gap-1 rounded-full border border-dashed border-slate-300 px-3 py-1 text-xs font-medium text-indigo-600 hover:border-indigo-300"
                                 >
-                                  {tag}
-                                </span>
-                              ))}
+                                  <span className="text-base leading-none text-indigo-600">
+                                    +
+                                  </span>
+                                  Add patient tag
+                                </button>
+                                {med.patient?.tags.map((tag, index) => (
+                                  <span
+                                    key={`${med.id}-tag-${index}`}
+                                    className="rounded-full bg-rose-50 px-3 py-1 text-xs font-medium text-rose-600"
+                                  >
+                                    {tag}
+                                  </span>
+                                ))}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </td>
-                    </tr>,
-                  ];
-                })}
-          </tbody>
-        </table>
-      </div>
-      <footer className="flex items-center justify-between border-t border-slate-200 px-6 py-4 text-sm text-slate-600">
-        <p>Showing 1-20 of 36</p>
-        <div className="flex items-center gap-2">
-          <button className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 text-slate-500">
-            <span className="sr-only">Previous page</span>
-            <Icon name="chevron-left" />
-          </button>
-          <button className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 text-slate-500">
-            <span className="sr-only">Next page</span>
-            <Icon name="chevron-right" />
-          </button>
+                        </td>
+                      </tr>,
+                    ];
+                  })}
+            </tbody>
+          </table>
         </div>
-      </footer>
-    </section>
-      {showColumnConfigurator && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 py-8">
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="column-config-title"
-            className="w-full max-w-3xl rounded-[32px] bg-white shadow-[0_25px_40px_rgba(15,23,42,0.12)]"
-          >
-            <div className="flex items-start justify-between border-b border-slate-100 px-8 py-6">
-              <div>
-                <h2
-                  id="column-config-title"
-                  className="text-2xl font-semibold text-slate-900"
-                >
-                  Configure table columns
-                </h2>
-                <p className="mt-1 text-sm text-slate-500">
-                  Choose which optional fields appear in this table. Changes take effect immediately.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowColumnConfigurator(false)}
-                className="rounded-full p-2 text-slate-400 transition hover:bg-slate-100"
-                aria-label="Close column configurator"
-              >
-                ✕
-              </button>
-            </div>
-            <div className="px-8 py-6">
-              <div className="grid gap-8 md:grid-cols-2">
-                <section>
-                  <p className="text-sm font-semibold text-slate-700">Available columns</p>
-                  <div className="mt-4 flex flex-col gap-3">
-                    {hiddenOptionalColumns.map((column) => (
-                      <button
-                        key={`available-${column}`}
-                        type="button"
-                        onClick={() => handleToggleColumnVisibility(column)}
-                        className="flex items-center justify-between rounded-2xl bg-[#E2E8FF] px-4 py-2 text-sm font-medium text-indigo-900 shadow-sm transition hover:bg-[#d6ddff]"
-                      >
-                        <span className="flex items-center gap-3">
-                          <Icon name="drag-blue" />
-                          {optionalColumnConfig[column].label}
-                        </span>
-                        <span className="text-indigo-700" aria-hidden>
-                          ✕
-                        </span>
-                      </button>
-                    ))}
-                    {hiddenOptionalColumns.length === 0 && (
-                      <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-2 text-center text-xs text-slate-400">
-                        No additional columns
-                      </div>
-                    )}
-                  </div>
-                </section>
-                <section>
-                  <p className="text-sm font-semibold text-slate-700">
-                    Visible columns <span className="text-xs font-normal text-slate-400">(Drag to re-order)</span>
-                  </p>
-                  <div className="mt-4 flex flex-col gap-3">
-                    <div className="flex items-center justify-between rounded-2xl bg-slate-100 px-4 py-2 text-sm font-medium text-slate-500">
-                      <span className="flex items-center gap-3">
-                        <Icon name="drag-gray" />
-                        Medication (locked)
-                      </span>
-                      <span className="text-slate-400">Pinned</span>
-                    </div>
-                    {activeOptionalColumns.map((column) => (
-                      <div
-                        key={`visible-${column}`}
-                        className="flex items-center justify-between rounded-2xl bg-[#E2E8FF] px-4 py-2 text-sm font-medium text-indigo-900 shadow-sm"
-                      >
-                        <span className="flex items-center gap-3">
-                          <Icon name="drag-blue" />
-                          {optionalColumnConfig[column].label}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => handleToggleColumnVisibility(column)}
-                          className="text-indigo-700 transition hover:text-indigo-900"
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    ))}
-                    {activeOptionalColumns.length === 0 && (
-                      <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-2 text-center text-xs text-slate-400">
-                        No optional columns selected
-                      </div>
-                    )}
-                  </div>
-                </section>
-              </div>
-            </div>
-            <div className="border-t border-slate-200 px-8 py-6">
-              <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-slate-700">
-                    Save as default for all team members
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setSaveForTeam((prev) => !prev)}
-                    role="switch"
-                    aria-checked={saveForTeam}
-                    className={`h-6 w-11 rounded-full border transition ${saveForTeam ? "border-green-500 bg-green-500" : "border-slate-300 bg-slate-200"}`}
-                  >
-                    <span
-                      className={`block h-5 w-5 rounded-full bg-white shadow transition ${saveForTeam ? "translate-x-5" : "translate-x-0.5"}`}
-                    />
-                  </button>
-                </div>
-              </div>
-              <div className="mt-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                <button
-                  type="button"
-                  onClick={handleResetColumns}
-                  className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-                >
-                  Reset to defaults
-                </button>
-                <div className="flex justify-end gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setShowColumnConfigurator(false)}
-                    className="rounded-xl border border-slate-200 bg-white px-6 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-                  >
-                    Close
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowColumnConfigurator(false)}
-                    className="rounded-xl bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700"
-                  >
-                    Save
-                  </button>
-                </div>
-              </div>
-            </div>
+        <footer className="flex items-center justify-between border-t border-slate-200 px-6 py-4 text-sm text-slate-600">
+          <p>Showing 1-20 of 36</p>
+          <div className="flex items-center gap-2">
+            <button className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 text-slate-500">
+              <span className="sr-only">Previous page</span>
+              <Icon name="chevron-left" />
+            </button>
+            <button className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 text-slate-500">
+              <span className="sr-only">Next page</span>
+              <Icon name="chevron-right" />
+            </button>
           </div>
-        </div>
-      )}
+        </footer>
+      </section>
+
+      <ColumnConfigurator
+        isOpen={isConfigOpen}
+        onClose={() => setIsConfigOpen(false)}
+        activeColumns={activeOptionalColumns}
+        hiddenColumns={hiddenOptionalColumns}
+        onToggleColumn={handleToggleColumnVisibility}
+        onReset={handleResetColumns}
+        saveForTeam={saveForTeam}
+        onToggleSave={() => setSaveForTeam((prev) => !prev)}
+      />
     </>
   );
 }
