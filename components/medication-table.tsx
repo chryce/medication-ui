@@ -496,7 +496,7 @@ export function MedicationTable() {
           </div>
         )}
         <div className="max-w-full overflow-x-auto">
-          <table className="w-full min-w-[920px] border-collapse text-sm">
+          <table className="min-w-[960px] border-collapse text-sm">
             <thead>
               <tr className="text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
                 <th className="w-12 px-6 py-3">
