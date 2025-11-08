@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { faker } from "@faker-js/faker";
 import type { Medication } from "@/types/medication";
+import { formatDisplayDate } from "@/lib/dates";
 
 const TOTAL_ITEMS = 200;
 const PAGE_SIZE_DEFAULT = 20;
@@ -47,7 +48,7 @@ function buildMedication(id: number): Medication {
       "Monitor for dizziness",
       "Not recorded",
     ]),
-    date: formatDate(
+    date: formatDisplayDate(
       faker.date.between({ from: "2021-10-20T00:00:00.000Z", to: "2021-10-24T00:00:00.000Z" }),
     ),
     doctor: `Dr. ${faker.person.firstName()} ${faker.person.lastName()}`,
@@ -69,12 +70,6 @@ function buildMedication(id: number): Medication {
     },
     color: faker.helpers.arrayElement(colorClasses),
   };
-}
-
-function formatDate(date: Date) {
-  const iso = date.toISOString().split("T")[0]; // yyyy-mm-dd
-  const [year, month, day] = iso.split("-");
-  return `${day}-${month}-${year}`;
 }
 
 export async function GET(request: Request) {

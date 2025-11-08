@@ -1,7 +1,7 @@
 "use client";
 
 import { Icon } from "@/components/ui/icon";
-import { useMemo } from "react";
+import { buildPaginationRange } from "@/lib/pagination";
 
 type PaginationProps = {
   currentPage: number;
@@ -10,10 +10,7 @@ type PaginationProps = {
 };
 
 export function Pagination({ currentPage, totalPages, onPageChange }: PaginationProps) {
-  const paginationRange = useMemo(
-    () => buildPaginationRange(currentPage, totalPages),
-    [currentPage, totalPages],
-  );
+  const paginationRange = buildPaginationRange(currentPage, totalPages);
 
   if (totalPages <= 1) return null;
 
