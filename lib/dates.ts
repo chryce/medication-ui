@@ -1,5 +1,3 @@
-"use client";
-
 export function formatDisplayDate(date: Date | string) {
   const normalized = typeof date === "string" ? new Date(date) : date;
   if (Number.isNaN(normalized.getTime())) return "";
