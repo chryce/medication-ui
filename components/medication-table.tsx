@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import type { KeyboardEvent } from "react";
+import type { KeyboardEvent, ReactNode } from "react";
 
 type Medication = {
   id: number;
@@ -13,6 +13,8 @@ type Medication = {
   instructions: string;
   date: string;
   doctor: string;
+  contact: string;
+  notes: string;
   patient?: {
     fullName: string;
     tags: string[];
@@ -30,6 +32,8 @@ const initialMedications: Medication[] = [
     instructions: "Take after meals and avoid acidic food",
     date: "22-10-2021",
     doctor: "Dr. Kumar Shah",
+    contact: "+1 (555) 204-1212",
+    notes: "Patient reports mild drowsiness if taken before 9am.",
     patient: {
       fullName: "Jannette Somebody",
       tags: ["Hypertensive", "Hypersensitive", "High risk"],
@@ -45,6 +49,8 @@ const initialMedications: Medication[] = [
     instructions: "Not recorded",
     date: "22-10-2021",
     doctor: "Dr. Kumar Shah",
+    contact: "+1 (555) 204-1212",
+    notes: "Administer via IM injection only.",
     patient: {
       fullName: "Jannette Somebody",
       tags: ["Hypertensive"],
@@ -60,6 +66,8 @@ const initialMedications: Medication[] = [
     instructions: "Don't take on empty stomach",
     date: "22-10-2021",
     doctor: "Dr. Kumar Shah",
+    contact: "+1 (555) 204-1212",
+    notes: "Schedule follow-up in three days.",
     patient: {
       fullName: "Jannette Somebody",
       tags: ["Hypertensive", "Hypersensitive", "Allergy: dust"],
@@ -75,6 +83,8 @@ const initialMedications: Medication[] = [
     instructions: "Don't take on empty stomach",
     date: "22-10-2021",
     doctor: "Dr. Kumar Shah",
+    contact: "+1 (555) 204-1212",
+    notes: "Monitor for nausea.",
     patient: {
       fullName: "Jannette Somebody",
       tags: ["Hypersensitive"],
@@ -90,6 +100,8 @@ const initialMedications: Medication[] = [
     instructions: "Don't take on empty stomach",
     date: "22-10-2021",
     doctor: "Dr. Kumar Shah",
+    contact: "+1 (555) 204-1212",
+    notes: "Evening dose preferred.",
     patient: {
       fullName: "Jannette Somebody",
       tags: ["Hypertensive"],
@@ -113,6 +125,60 @@ type IconName =
   | "export"
   | "archive"
   | "chevron-right-small";
+
+type ColumnId = "contact" | "patientTags" | "notes";
+
+const optionalColumnOrder: ColumnId[] = ["contact", "patientTags", "notes"];
+
+const optionalColumnConfig: Record<
+  ColumnId,
+  {
+    label: string;
+    description: string;
+    renderCell: (med: Medication) => ReactNode;
+  }
+> = {
+  contact: {
+    label: "Patient contact",
+    description: "Primary phone number and patient name.",
+    renderCell: (med) => (
+      <div className="space-y-1 text-sm">
+        <p className="font-medium text-slate-900">
+          {med.patient?.fullName ?? "Unknown patient"}
+        </p>
+        <p className="text-slate-500">{med.contact}</p>
+      </div>
+    ),
+  },
+  patientTags: {
+    label: "Patient tags",
+    description: "Highlight key traits or alerts.",
+    renderCell: (med) => (
+      <div className="flex flex-wrap gap-2">
+        {(med.patient?.tags ?? []).map((tag, index) => (
+          <span
+            key={`${med.id}-opt-tag-${index}`}
+            className="rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-600"
+          >
+            {tag}
+          </span>
+        ))}
+        {(!med.patient || med.patient.tags.length === 0) && (
+          <span className="text-sm text-slate-400">No tags</span>
+        )}
+      </div>
+    ),
+  },
+  notes: {
+    label: "Care notes",
+    description: "Internal notes about this order.",
+    renderCell: (med) => (
+      <p className="text-sm text-slate-600">{med.notes}</p>
+    ),
+  },
+};
+
+const DEFAULT_VISIBLE_OPTIONAL_COLUMNS: ColumnId[] = [];
 
 type IconProps = {
   name: IconName;
@@ -184,6 +250,10 @@ export function MedicationTable() {
   const [pendingEdits, setPendingEdits] = useState<Record<number, Medication>>({});
   const [isEditing, setIsEditing] = useState(false);
   const [editingCells, setEditingCells] = useState<Record<number, EditableField[]>>({});
+  const [visibleOptionalColumns, setVisibleOptionalColumns] = useState<ColumnId[]>(
+    DEFAULT_VISIBLE_OPTIONAL_COLUMNS,
+  );
+  const [showColumnConfigurator, setShowColumnConfigurator] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 2000);
@@ -431,6 +501,20 @@ export function MedicationTable() {
     setIsEditing(true);
   };
 
+  const handleToggleColumnVisibility = (column: ColumnId) => {
+    setVisibleOptionalColumns((prev) => {
+      if (prev.includes(column)) {
+        return prev.filter((item) => item !== column);
+      }
+      const next = [...prev, column];
+      return optionalColumnOrder.filter((col) => next.includes(col));
+    });
+  };
+
+  const handleResetColumns = () => {
+    setVisibleOptionalColumns(DEFAULT_VISIBLE_OPTIONAL_COLUMNS);
+  };
+
   const toggleExpand = (id: number) => {
     setExpandedIds((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
@@ -468,11 +552,32 @@ export function MedicationTable() {
         <div className="ml-auto h-4 w-24 rounded bg-slate-100" />
         <div className="ml-auto mt-2 h-3 w-20 rounded bg-slate-100" />
       </td>
+      {visibleOptionalColumns.map((column) => (
+        <td key={`skeleton-${column}`} className="px-4 py-4">
+          <div className="h-3 w-full rounded bg-slate-100" />
+        </td>
+      ))}
     </tr>
   );
 
+  const activeOptionalColumns = optionalColumnOrder.filter((column) =>
+    visibleOptionalColumns.includes(column),
+  );
+  const hiddenOptionalColumns = optionalColumnOrder.filter(
+    (column) => !visibleOptionalColumns.includes(column),
+  );
+
+  const primaryColumnLabels = [
+    "Selection",
+    "Medication",
+    "Frequency",
+    "Additional instructions",
+    "Date",
+  ];
+
   return (
-    <section className="w-full rounded-3xl border border-slate-200 bg-white shadow-sm">
+    <>
+      <section className="w-full rounded-3xl border border-slate-200 bg-white shadow-sm">
       <div className="flex flex-col gap-4 border-b border-slate-200 px-6 pb-4 pt-5 md:flex-row md:items-center md:justify-between">
         <label className="flex flex-1 items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-500 focus-within:border-slate-400">
           <Icon name="search" alt="Search" />
@@ -489,7 +594,11 @@ export function MedicationTable() {
             <Icon name="filter" alt="Filter icon" size={18} />
             Filter
           </button>
-          <button className="flex items-center gap-2 rounded-2xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700">
+          <button
+            type="button"
+            onClick={() => setShowColumnConfigurator(true)}
+            className="flex items-center gap-2 rounded-2xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700"
+          >
             <Icon name="columns" alt="Columns icon" size={18} />
             Configure columns
           </button>
@@ -569,6 +678,11 @@ export function MedicationTable() {
               <th className="px-4 py-3">Frequency</th>
               <th className="px-4 py-3">Additional instructions</th>
               <th className="px-4 py-3 text-right pr-10">Date</th>
+              {visibleOptionalColumns.map((column) => (
+                <th key={`header-${column}`} className="px-4 py-3 text-left">
+                  {optionalColumnConfig[column].label}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
@@ -648,6 +762,11 @@ export function MedicationTable() {
                           </button>
                         </div>
                       </td>
+                      {visibleOptionalColumns.map((column) => (
+                        <td key={`${med.id}-${column}`} className="px-4 py-3 align-top">
+                          {optionalColumnConfig[column].renderCell(med)}
+                        </td>
+                      ))}
                     </tr>
                   );
 
@@ -657,7 +776,7 @@ export function MedicationTable() {
                     baseRow,
                     <tr key={`${med.id}-details`} className="border-t border-slate-100 bg-slate-50">
                       <td />
-                      <td colSpan={4} className="py-4">
+                      <td colSpan={4 + visibleOptionalColumns.length} className="py-4">
                         <div className="grid gap-6 rounded-2xl border border-slate-200 bg-white p-6 md:grid-cols-3">
                           <div>
                             <p className="text-xs uppercase text-slate-400">Full name</p>
@@ -717,5 +836,144 @@ export function MedicationTable() {
         </div>
       </footer>
     </section>
+      {showColumnConfigurator && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 py-8">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="column-config-title"
+            className="w-full max-w-4xl rounded-3xl bg-white shadow-2xl"
+          >
+            <div className="flex items-start justify-between border-b border-slate-100 px-6 py-5">
+              <div>
+                <h2
+                  id="column-config-title"
+                  className="text-xl font-semibold text-slate-900"
+                >
+                  Configure table columns
+                </h2>
+                <p className="mt-1 text-sm text-slate-500">
+                  Toggle optional insights to customize this table. Changes apply
+                  immediately.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowColumnConfigurator(false)}
+                className="rounded-full p-2 text-slate-500 transition hover:bg-slate-100"
+                aria-label="Close column configurator"
+              >
+                x
+              </button>
+            </div>
+            <div className="grid gap-6 border-b border-slate-100 px-6 py-6 md:grid-cols-2">
+              <section>
+                <h3 className="text-sm font-semibold text-slate-700">
+                  Always visible
+                </h3>
+                <p className="mt-1 text-xs text-slate-500">
+                  Core columns cannot be hidden.
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {primaryColumnLabels.map((label) => (
+                    <span
+                      key={label}
+                      className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-500"
+                    >
+                      {label}
+                    </span>
+                  ))}
+                </div>
+              </section>
+              <section>
+                <h3 className="text-sm font-semibold text-slate-700">
+                  Optional columns
+                </h3>
+                <p className="mt-1 text-xs text-slate-500">
+                  Click to show or hide extra patient context.
+                </p>
+                <div className="mt-3 flex flex-col gap-4">
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-slate-400">
+                      Visible
+                    </p>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {activeOptionalColumns.length === 0 && (
+                        <span className="rounded-2xl border border-dashed border-slate-200 px-3 py-1 text-xs text-slate-400">
+                          No optional columns visible
+                        </span>
+                      )}
+                      {activeOptionalColumns.map((column) => (
+                        <button
+                          key={`visible-${column}`}
+                          type="button"
+                          onClick={() => handleToggleColumnVisibility(column)}
+                          className="flex items-center gap-2 rounded-2xl border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-medium text-indigo-700 transition hover:bg-indigo-100"
+                        >
+                          :: {optionalColumnConfig[column].label}
+                          <span aria-hidden className="text-sm">
+                            x
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-slate-400">
+                      Hidden
+                    </p>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {hiddenOptionalColumns.length === 0 && (
+                        <span className="rounded-2xl border border-dashed border-slate-200 px-3 py-1 text-xs text-slate-400">
+                          No hidden columns
+                        </span>
+                      )}
+                      {hiddenOptionalColumns.map((column) => (
+                        <button
+                          key={`hidden-${column}`}
+                          type="button"
+                          onClick={() => handleToggleColumnVisibility(column)}
+                          className="flex items-center gap-2 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-500 transition hover:border-indigo-200 hover:text-indigo-700"
+                        >
+                          :: {optionalColumnConfig[column].label}
+                          <span className="text-xs text-slate-400">
+                            (add)
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
+            <div className="flex flex-col gap-4 px-6 py-5">
+              <button
+                type="button"
+                onClick={handleResetColumns}
+                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
+              >
+                Reset to defaults
+              </button>
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowColumnConfigurator(false)}
+                  className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                >
+                  Close
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowColumnConfigurator(false)}
+                  className="rounded-xl bg-indigo-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700"
+                >
+                  Save
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
