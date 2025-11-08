@@ -113,13 +113,9 @@ export function MedicationTable() {
   useEffect(() => {
     const paramPage = Number(searchParams.get("page") ?? "1") || 1;
     const paramSearch = searchParams.get("search") ?? "";
-    if (paramPage !== page) {
-      setPage(paramPage);
-    }
-    if (paramSearch !== searchInput) {
-      setSearchInput(paramSearch);
-      setSearchQuery(paramSearch);
-    }
+    setPage(paramPage);
+    setSearchInput(paramSearch);
+    setSearchQuery(paramSearch);
   }, [searchParams]);
 
   const toggleRowSelection = (id: number) => {
