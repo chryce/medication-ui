@@ -393,7 +393,7 @@ export function MedicationTable() {
   return (
     <>
       <section className="w-full rounded-3xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex flex-col gap-4 border-b border-slate-200 px-6 pb-4 pt-5 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-4 border-b border-slate-200 px-4 pb-4 pt-5 sm:px-6 md:flex-row md:items-center md:justify-between">
           <label
             className={`flex flex-1 max-w-lg items-center gap-3 rounded-2xl border px-4 py-2 text-sm text-slate-500 transition ${
               searchInput ? "border-indigo-500 bg-white" : "border-slate-200 bg-slate-50"
@@ -419,11 +419,11 @@ export function MedicationTable() {
               )}
             </div>
           </label>
-          <div className="flex items-center gap-2">
-            <button className="flex items-center gap-2 rounded-2xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700">
+          <div className="flex flex-wrap items-center gap-2">
+            <button className="flex items-center gap-2 rounded-2xl border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 sm:text-sm">
               Sort by <Icon name="chevron-down" />
             </button>
-            <button className="flex items-center gap-2 rounded-2xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700">
+            <button className="flex items-center gap-2 rounded-2xl border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 sm:text-sm">
               <Icon name="filter" alt="Filter icon" size={18} />
               Filter
             </button>
@@ -496,7 +496,7 @@ export function MedicationTable() {
           </div>
         )}
         <div className="max-w-full overflow-x-auto">
-          <table className="w-full border-collapse text-sm">
+          <table className="w-full min-w-[920px] border-collapse text-sm">
             <thead>
               <tr className="text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
                 <th className="w-12 px-6 py-3">
@@ -735,15 +735,11 @@ export function MedicationTable() {
             </tbody>
           </table>
         </div>
-        <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 px-6 py-4 text-sm text-slate-600">
-          <p>
+        <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 px-4 py-4 text-sm text-slate-600 sm:px-6">
+          <p className="text-xs text-slate-500 sm:text-sm">
             Showing {startEntry}-{endEntry} of {totalCount}
           </p>
-          <Pagination
-            currentPage={page}
-            totalPages={totalPages}
-            onPageChange={setPage}
-          />
+          <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
         </footer>
       </section>
 
