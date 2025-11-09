@@ -1,4 +1,4 @@
-## Medication UI ![Tests](https://github.com/crycetruly/medication-ui/actions/workflows/ci.yml/badge.svg)
+## Medication UI ![Tests](https://github.com/chryce/medication-ui/actions/workflows/ci.yml/badge.svg)
 
 This Next.js app renders a medication orders dashboard with inline editing, configurable columns, expandable rows, and toast notifications. Data is served by a Next.js API route that returns paginated Faker-generated records.
 
