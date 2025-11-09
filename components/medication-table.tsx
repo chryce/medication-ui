@@ -15,6 +15,7 @@ import {
 import { ColumnConfigurator } from "@/components/medication/column-configurator";
 import { SkeletonTable } from "@/components/ui/skeleton-table";
 import { Pagination } from "@/components/ui/pagination";
+import { EllipsisVerticalIcon } from "@heroicons/react/16/solid";
 
 type EditableField = "name" | "dosage" | "frequency" | "duration" | "instructions";
 const DEFAULT_API_ENDPOINT =
@@ -392,18 +393,22 @@ export function MedicationTable() {
 
   return (
     <>
-      <section className="w-full rounded-3xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex flex-col gap-4 border-b border-slate-200 px-4 pb-4 pt-5 sm:px-6 md:flex-row md:items-center md:justify-between">
+      <section className="w-full rounded-3xl border border-[#d0d7de] bg-white shadow-sm">
+        {/* Header */}
+        <div className="flex flex-col gap-4 border-b border-[#d0d7de] px-4 pb-4 pt-5 sm:px-6 md:flex-row md:items-center md:justify-between">
+          {/* Search */}
           <label
-            className={`flex flex-1 max-w-lg items-center gap-3 rounded-2xl border px-4 py-2 text-sm text-slate-500 transition ${
-              searchInput ? "border-indigo-500 bg-white" : "border-slate-200 bg-slate-50"
-            } focus-within:border-indigo-400`}
+            className={`flex gap-1 py-2 h-8 rounded-sm border [#e3e3e3] border-solid bg-[#fbfbfb] items-center px-4 text-sm text-slate-500 transition ${
+              searchInput
+                ? "border-indigo-500 bg-white"
+                : "border-[#d0d7de] bg-slate-50"
+            } focus-within:border-indigo-400 w-full md:w-[320px] md:max-w-lg`}
           >
             <Icon name="search" alt="Search" />
             <input
               value={searchInput}
               onChange={(event) => setSearchInput(event.target.value)}
-              placeholder="Search medication orders"
+              placeholder="Search"
               className="w-full bg-transparent text-slate-900 outline-none placeholder:text-slate-400"
             />
             <div className="flex h-6 w-6 items-center justify-center">
@@ -411,7 +416,7 @@ export function MedicationTable() {
                 <button
                   type="button"
                   onClick={() => setSearchInput("")}
-                  className="rounded-full p-1 text-slate-400 transition hover:bg-slate-200"
+                  className="rounded-full p-1 text-slate-400 transition hover:bg-[#d0d7de]"
                   aria-label="Clear search text"
                 >
                   ✕
@@ -419,26 +424,45 @@ export function MedicationTable() {
               )}
             </div>
           </label>
-          <div className="flex flex-wrap items-center gap-2">
-            <button className="flex items-center gap-2 rounded-2xl border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 sm:text-sm">
-              Sort by <Icon name="chevron-down" />
-            </button>
-            <button className="flex items-center gap-2 rounded-2xl border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 sm:text-sm">
-              <Icon name="filter" alt="Filter icon" size={18} />
-              Filter
-            </button>
-            <button
-              type="button"
-              onClick={() => setIsConfigOpen(true)}
-              className="flex items-center gap-2 rounded-2xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700"
-            >
-              <Icon name="columns" alt="Columns icon" size={18} />
-              Configure columns
-            </button>
+
+          {/* Controls */}
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto mt-2 md:mt-0">
+            {/* Row with Sort by + Filter + Configure Columns side-by-side */}
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <button className="flex flex-1 sm:flex-none items-center justify-between gap-2 h-8 border-[#d0d7de] px-3 py-2 text-xs font-medium text-[#818287] sm:text-sm rounded-sm border [#e3e3e3] border-solid bg-[#fbfbfb]">
+                <p>Sort by</p>
+                <Icon name="chevron-down" />
+              </button>
+
+              <button
+                className="flex flex-1 sm:flex-none items-center justify-center gap-2 h-8 px-3 py-2 text-xs font-medium text-[#2c3242]
+             border border-solid border-[#e3e3e3] rounded-sm bg-[#fbfbfb]
+             shadow-[0_2px_0_0_#d6d6d6]"
+              >
+                <Icon
+                  name="filter"
+                  className="text-[#818287]"
+                  alt="Filter icon"
+                  size={18}
+                />
+                Filter
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsConfigOpen(true)}
+                className="flex flex-1 sm:flex-none items-center justify-center gap-2 rounded-sm h-8 border border-[#d0d7de] px-3 py-2 text-xs font-medium text-[#2c3242] shadow-[0_2px_0_0_#d6d6d6]"
+              >
+                <Icon name="columns" alt="Columns icon" size={18} />
+                Configure columns
+              </button>
+            </div>
           </div>
         </div>
+
+        {/* Selection toolbar */}
         {selectionCount > 0 && (
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-indigo-100 bg-indigo-50 px-6 py-4 text-sm">
+          <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center justify-between gap-3 border-b border-indigo-100 bg-indigo-50 px-4 sm:px-6 py-4 text-sm">
             <div className="flex items-center gap-3 text-indigo-700">
               <Icon name="checkbox-indeterminate" />
               <span className="font-medium">
@@ -449,18 +473,18 @@ export function MedicationTable() {
               </span>
             </div>
             {isEditing ? (
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
                   onClick={handleDismissEdits}
-                  className="rounded-xl border border-slate-300 bg-white px-4 py-2 font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+                  className="rounded-sm border border-slate-300 bg-white px-4 py-2 font-medium text-[#818287] shadow-sm transition hover:bg-slate-50"
                 >
                   Dismiss
                 </button>
                 <button
                   type="button"
                   onClick={handleSaveChanges}
-                  className="rounded-xl bg-indigo-600 px-5 py-2 font-semibold text-white shadow-sm transition hover:bg-indigo-700"
+                  className="rounded-sm bg-indigo-600 px-5 py-2 font-semibold text-white shadow-sm transition hover:bg-indigo-700"
                 >
                   Save changes
                 </button>
@@ -470,7 +494,7 @@ export function MedicationTable() {
                 <button
                   type="button"
                   onClick={handleStartEditing}
-                  className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 font-medium text-slate-800 shadow-sm transition hover:bg-slate-50"
+                  className="flex items-center gap-2 rounded-sm border border-[#d0d7de] bg-white px-3 py-2 font-medium text-slate-800 shadow-sm transition hover:bg-slate-50"
                 >
                   <Icon name="edit" />
                   Edit
@@ -478,7 +502,7 @@ export function MedicationTable() {
                 <button
                   type="button"
                   onClick={() => alert("Export action coming soon")}
-                  className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 font-medium text-slate-800 shadow-sm transition hover:bg-slate-50"
+                  className="flex items-center gap-2 rounded-sm border border-[#d0d7de] bg-white px-3 py-2 font-medium text-slate-800 shadow-sm transition hover:bg-slate-50"
                 >
                   <Icon name="export" />
                   Export
@@ -486,7 +510,7 @@ export function MedicationTable() {
                 <button
                   type="button"
                   onClick={() => alert("Archive action coming soon")}
-                  className="flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 px-3 py-2 font-medium text-red-600 shadow-sm transition hover:bg-red-100"
+                  className="flex items-center gap-2 rounded-sm border border-red-100 bg-red-50 px-3 py-2 font-medium text-red-600 shadow-sm transition hover:bg-red-100"
                 >
                   <Icon name="archive" />
                   Archive
@@ -495,10 +519,14 @@ export function MedicationTable() {
             )}
           </div>
         )}
-        <div className="max-w-full overflow-x-auto">
-          <table className="w-full border-collapse text-sm">
-            <thead>
-              <tr className="text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+
+        {/* Table */}
+        <div className="w-full overflow-x-auto px-2 sm:px-4">
+          <table className="w-full min-w-[800px] border-collapse text-sm">
+            {/* ---------- HEADER ---------- */}
+            <thead className="border-b border-[#d0d7de] bg-[#fbfbfb]">
+              <tr className="tracking-wide font-inter text-sm font-medium text-left text-[#6b6f7a]">
+                {/* Selection */}
                 <th className="w-12 px-6 py-3">
                   <SelectionCheckbox
                     checked={allSelected}
@@ -507,28 +535,62 @@ export function MedicationTable() {
                     label="Select all medications"
                   />
                 </th>
-                <th className="px-4 py-3">Medication</th>
-                <th className="px-4 py-3">Frequency</th>
-                <th className="px-4 py-3">Additional instructions</th>
-                <th className="px-4 py-3 text-right pr-10">Date</th>
+
+                {/* Empty column for expand icon */}
+                <th className="w-8 px-2 py-3"></th>
+
+                {/* Core headers */}
+                <th>
+                  <div className="flex items-center gap-1">
+                    <span>Medication</span>
+                    <Icon name="chevron-down" />
+                  </div>
+                </th>
+                <th>
+                  <div className="flex items-center gap-1">
+                    <span>Frequency</span>
+                    <Icon name="chevron-down" />
+                  </div>
+                </th>
+                <th>
+                  <div className="flex items-center gap-1">
+                    <span>Additional instructions</span>
+                    <Icon name="chevron-down" />
+                  </div>
+                </th>
+                <th>
+                  <div className="flex items-center gap-1">
+                    <span>Date</span>
+                    <Icon name="chevron-down" />
+                  </div>
+                </th>
+
+                {/* Optional columns */}
                 {visibleOptionalColumns.map((column) => (
-                  <th key={`header-${column}`} className="px-4 py-3 text-left">
+                  <th key={`header-${column}`} className="text-left">
                     {optionalColumnConfig[column].label}
                   </th>
                 ))}
+
+                <th className="w-8 px-3 text-center">
+                  {/* <EllipsisVerticalIcon className="h-5 w-5 text-slate-400" /> */}
+                </th>
               </tr>
             </thead>
+
             <tbody>
+              {/* Loading state */}
               {isLoading && (
                 <SkeletonTable
                   optionalColumns={visibleOptionalColumns.length}
                 />
               )}
 
+              {/* Error state */}
               {!isLoading && errorMessage && (
                 <tr>
                   <td
-                    colSpan={5 + visibleOptionalColumns.length}
+                    colSpan={6 + visibleOptionalColumns.length}
                     className="py-10 text-center text-sm text-rose-500"
                   >
                     {errorMessage}
@@ -536,10 +598,11 @@ export function MedicationTable() {
                 </tr>
               )}
 
+              {/* Empty state */}
               {!isLoading && !errorMessage && medications.length === 0 && (
                 <tr>
                   <td
-                    colSpan={5 + visibleOptionalColumns.length}
+                    colSpan={6 + visibleOptionalColumns.length}
                     className="py-10 text-center text-sm text-slate-500"
                   >
                     No medication orders found.
@@ -547,6 +610,7 @@ export function MedicationTable() {
                 </tr>
               )}
 
+              {/* Data rows */}
               {!isLoading &&
                 !errorMessage &&
                 medications.length > 0 &&
@@ -565,43 +629,50 @@ export function MedicationTable() {
                           : "hover:bg-slate-50"
                       }`}
                     >
-                      <td className="px-6 py-4 align-top">
+                      {/* Selection */}
+                      <td className="px-6 py-4">
                         <SelectionCheckbox
                           checked={isSelected}
                           onToggle={() => toggleRowSelection(med.id)}
                           label={`Select ${med.name}`}
                         />
                       </td>
-                      <td className="py-3 align-top">
-                        <div className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            className="p-1 text-indigo-600 transition hover:text-indigo-800"
-                            onClick={() => toggleExpand(med.id)}
-                            aria-label={
-                              isExpanded
-                                ? `Collapse details for ${med.name}`
-                                : `Expand details for ${med.name}`
-                            }
-                          >
-                            <Icon
-                              name="chevron-right-small"
-                              className={`h-4 w-4 transition-transform ${
-                                isExpanded ? "rotate-90" : ""
-                              }`}
-                            />
-                          </button>
-                          <div className="w-full space-y-1">
-                            {renderEditableLine(med.id, "name", med.name, {
-                              textClass: "font-medium text-slate-900",
-                            })}
-                            {renderEditableLine(med.id, "dosage", med.dosage, {
-                              textClass: "text-sm text-slate-500",
-                            })}
-                          </div>
+
+                      {/* Expand icon */}
+                      <td className="px-2 py-3">
+                        <button
+                          type="button"
+                          className="p-1 text-indigo-600 transition hover:text-indigo-800"
+                          onClick={() => toggleExpand(med.id)}
+                          aria-label={
+                            isExpanded
+                              ? `Collapse details for ${med.name}`
+                              : `Expand details for ${med.name}`
+                          }
+                        >
+                          <Icon
+                            name="chevron-right-small"
+                            className={`h-4 w-4 transition-transform ${
+                              isExpanded ? "" : "rotate-90"
+                            }`}
+                          />
+                        </button>
+                      </td>
+
+                      {/* Medication data */}
+                      <td className="py-3">
+                        <div className="w-full space-y-1">
+                          {renderEditableLine(med.id, "name", med.name, {
+                            textClass: "font-medium text-slate-900",
+                          })}
+                          {renderEditableLine(med.id, "dosage", med.dosage, {
+                            textClass: "text-sm text-slate-500",
+                          })}
                         </div>
                       </td>
-                      <td className="py-3 align-top">
+
+                      {/* Frequency + Duration */}
+                      <td className="py-3">
                         <div className="space-y-1">
                           {renderEditableLine(
                             med.id,
@@ -621,36 +692,44 @@ export function MedicationTable() {
                           )}
                         </div>
                       </td>
-                      <td className="py-3 align-top text-slate-700">
+
+                      {/* Instructions */}
+                      <td className="py-3 text-[#818287]">
                         {renderEditableLine(
                           med.id,
                           "instructions",
                           med.instructions,
                           {
                             multiline: true,
-                            textClass: "text-slate-700 w-full",
+                            textClass: "text-[#818287] w-full",
                           }
                         )}
                       </td>
-                      <td className="px-4 py-3 align-top">
-                        <div className="text-right">
+
+                      {/* Date + Doctor */}
+                      <td>
+                        <div>
                           <p className="font-medium text-slate-800">
                             {med.date}
                           </p>
                           <p className="text-sm text-slate-500">{med.doctor}</p>
                         </div>
                       </td>
+
+                      {/* Optional column cells */}
                       {visibleOptionalColumns.map((column) => (
-                        <td
-                          key={`${med.id}-${column}`}
-                          className="px-4 py-3 align-top"
-                        >
+                        <td key={`${med.id}-${column}`}>
                           {optionalColumnConfig[column].renderCell(med)}
                         </td>
                       ))}
+
+                      <th className="w-8 px-3 text-center">
+                        <EllipsisVerticalIcon className="h-5 w-5 text-slate-400" />
+                      </th>
                     </tr>
                   );
 
+                  // Expanded details row
                   if (!isExpanded) return [baseRow];
 
                   return [
@@ -660,14 +739,16 @@ export function MedicationTable() {
                       className="border-t border-slate-100 bg-[#F7F7FB]"
                     >
                       <td className="pl-6" />
+                      <td />
                       <td
                         colSpan={4 + visibleOptionalColumns.length}
                         className="px-6 py-5"
                       >
-                        <div className="grid gap-8 text-sm text-slate-700 md:grid-cols-3">
+                        <div className="grid gap-8 text-sm text-[#818287] sm:grid-cols-2 lg:grid-cols-3">
+                          {/* Column 1 */}
                           <div className="space-y-4">
                             <div>
-                              <p className="text-xs uppercase text-slate-400">
+                              <p className="text-xs  text-slate-400">
                                 Full name
                               </p>
                               <p className="mt-1 font-medium text-slate-900">
@@ -675,18 +756,17 @@ export function MedicationTable() {
                               </p>
                             </div>
                             <div>
-                              <p className="text-xs uppercase text-slate-400">
-                                Contact
-                              </p>
+                              <p className="text-xs  text-slate-400">Contact</p>
                               <p className="mt-1 font-medium text-slate-900">
                                 {med.contact}
                               </p>
                             </div>
                           </div>
 
+                          {/* Column 2 */}
                           <div className="space-y-4">
                             <div>
-                              <p className="text-xs uppercase text-slate-400">
+                              <p className="text-xs  text-slate-400">
                                 Prescribed by
                               </p>
                               <p className="mt-1 font-medium text-slate-900">
@@ -694,17 +774,18 @@ export function MedicationTable() {
                               </p>
                             </div>
                             <div>
-                              <p className="text-xs uppercase text-slate-400">
+                              <p className="text-xs  text-slate-400">
                                 Additional instructions
                               </p>
-                              <p className="mt-1 text-slate-700">
+                              <p className="mt-1 text-[#818287]">
                                 {med.instructions}
                               </p>
                             </div>
                           </div>
 
+                          {/* Column 3 */}
                           <div>
-                            <p className="text-xs uppercase text-slate-400">
+                            <p className="text-xs  text-slate-400">
                               Patient tags
                             </p>
                             <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -729,17 +810,24 @@ export function MedicationTable() {
                           </div>
                         </div>
                       </td>
+                      <td className="w-8 px-3 text-center"></td>
                     </tr>,
                   ];
                 })}
             </tbody>
           </table>
         </div>
-        <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 px-4 py-4 text-sm text-slate-600 sm:px-6">
+
+        {/* Footer */}
+        <footer className="flex flex-col sm:flex-row flex-wrap items-center justify-between gap-3 border-t border-[#d0d7de] px-4 py-4 text-sm text-slate-600 sm:px-6">
           <p className="text-xs text-slate-500 sm:text-sm">
             Showing {startEntry}-{endEntry} of {totalCount}
           </p>
-          <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+          />
         </footer>
       </section>
 
@@ -755,4 +843,5 @@ export function MedicationTable() {
       />
     </>
   );
+
 }

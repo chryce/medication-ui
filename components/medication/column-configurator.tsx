@@ -33,9 +33,9 @@ export function ColumnConfigurator({
         role="dialog"
         aria-modal="true"
         aria-labelledby="column-config-title"
-        className="w-full max-w-3xl rounded-[32px] bg-white shadow-[0_25px_40px_rgba(15,23,42,0.12)]"
+        className="w-full max-w-3xl rounded-sm bg-white shadow-[0_25px_40px_rgba(15,23,42,0.12)]"
       >
-        <div className="flex items-start justify-between border-b border-slate-100 px-8 py-6">
+        <div className="flex items-start justify-between border-b border-slate-100 px-6 pt-6">
           <h2
             id="column-config-title"
             className="text-2xl font-semibold text-slate-900"
@@ -63,19 +63,22 @@ export function ColumnConfigurator({
                     key={`available-${column}`}
                     type="button"
                     onClick={() => onToggleColumn(column)}
-                    className="flex items-center justify-between rounded-2xl bg-[#E2E8FF] px-4 py-2 text-sm font-medium text-indigo-900 shadow-sm transition hover:bg-[#d6ddff]"
+                    className="flex items-center justify-between rounded-sm bg-[#E2E8FF] px-4 py-2 text-sm font-medium text-blue-900 shadow-sm transition hover:bg-[#d6ddff]"
                   >
-                    <span className="flex items-center gap-3">
+                    <span className="flex items-center gap-3 font-bold">
                       <Icon name="drag-blue" />
                       {optionalColumnConfig[column].label}
                     </span>
-                    <span className="text-indigo-700" aria-hidden>
+                    <span
+                      className="text-black transition hover:text-black"
+                      aria-hidden
+                    >
                       ✕
                     </span>
                   </button>
                 ))}
                 {hiddenColumns.length === 0 && (
-                  <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-2 text-center text-xs text-slate-400">
+                  <div className="rounded-sm border border-dashed border-slate-200 px-4 py-2 text-center text-xs text-slate-400">
                     No additional columns
                   </div>
                 )}
@@ -83,39 +86,35 @@ export function ColumnConfigurator({
             </section>
             <section>
               <p className="text-sm font-semibold text-slate-700">
-                Visible columns{" "}
-                <span className="text-xs font-normal text-slate-400">
-                  (Drag to re-order)
-                </span>
+                Visible columns (Drag to re-order)
               </p>
               <div className="mt-4 flex flex-col gap-3">
-                <div className="flex items-center justify-between rounded-2xl bg-slate-100 px-4 py-2 text-sm font-medium text-slate-500">
+                <div className="flex items-center justify-between rounded-sm bg-slate-100 px-4 py-2 text-sm font-medium text-slate-500">
                   <span className="flex items-center gap-3">
                     <Icon name="drag-gray" />
-                    Medication (locked)
+                    Patient Name (locked)
                   </span>
-                  <span className="text-slate-400">Pinned</span>
                 </div>
                 {activeColumns.map((column) => (
                   <div
                     key={`visible-${column}`}
-                    className="flex items-center justify-between rounded-2xl bg-[#E2E8FF] px-4 py-2 text-sm font-medium text-indigo-900 shadow-sm"
+                    className="flex items-center justify-between rounded-sm bg-[#E2E8FF] px-4 py-2 text-sm font-medium text-blue-900 shadow-sm"
                   >
-                    <span className="flex items-center gap-3">
+                    <span className="flex items-center gap-3 font-bold">
                       <Icon name="drag-blue" />
                       {optionalColumnConfig[column].label}
                     </span>
                     <button
                       type="button"
                       onClick={() => onToggleColumn(column)}
-                      className="text-indigo-700 transition hover:text-indigo-900"
+                      className="text-black transition hover:text-black"
                     >
                       ✕
                     </button>
                   </div>
                 ))}
                 {activeColumns.length === 0 && (
-                  <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-2 text-center text-xs text-slate-400">
+                  <div className="rounded-sm border border-dashed border-slate-200 px-4 py-2 text-center text-xs text-slate-400">
                     No optional columns selected
                   </div>
                 )}
@@ -124,7 +123,7 @@ export function ColumnConfigurator({
           </div>
         </div>
         <div className="border-t border-slate-200 px-8 py-6">
-          <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+          <div className="rounded-sm border border-slate-200 bg-white px-4 py-3 shadow-sm">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-slate-700">
                 Save as default for all team members
@@ -135,7 +134,9 @@ export function ColumnConfigurator({
                 role="switch"
                 aria-checked={saveForTeam}
                 className={`h-6 w-11 rounded-full border transition ${
-                  saveForTeam ? "border-green-500 bg-green-500" : "border-slate-300 bg-slate-200"
+                  saveForTeam
+                    ? "border-green-500 bg-green-500"
+                    : "border-slate-300 bg-slate-200"
                 }`}
               >
                 <span
@@ -150,7 +151,7 @@ export function ColumnConfigurator({
             <button
               type="button"
               onClick={onReset}
-              className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+              className="rounded-sm border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
             >
               Reset to defaults
             </button>
@@ -158,14 +159,14 @@ export function ColumnConfigurator({
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-xl border border-slate-200 bg-white px-6 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                className="rounded-sm border border-slate-200 bg-white px-6 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
               >
                 Close
               </button>
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-xl bg-indigo-600 px-6 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700"
+                className="rounded-sm bg-blue-600 px-6 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
               >
                 Save
               </button>
